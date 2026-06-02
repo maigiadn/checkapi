@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đo Độ Trễ Nhà Cung Cấp OpenAI API</title>
+  
+  <!-- Font Google Chuyên Nghiệp -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070a13;
+      --bg-glow: radial-gradient(circle at 50% -20%, rgba(99, 102, 241, 0.15) 0%, rgba(7, 10, 19, 0) 60%);
+      --panel: rgba(17, 24, 39, 0.7);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: rgba(255, 255, 255, 0.1);
+      
+      /* Gradients & Accents */
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #d946ef 100%);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --ok: #10b981;
+      --ok-bg: rgba(16, 185, 129, 0.15);
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      background-image: var(--bg-glow);
+      background-attachment: fixed;
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    /* Header Styling */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .subtitle {
+      margin: 0 auto;
+      max-width: 600px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* Dashboard Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Form Fields */
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #e5e7eb;
+      letter-spacing: 0.02em;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      background: rgba(10, 15, 30, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      color: #fff;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+      background: rgba(10, 15, 30, 0.8);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Custom Checkbox */
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0 20px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .checkbox input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* Primary Action Button */
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Metrics Summary Cards */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric {
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .metric:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin: 16px 0 20px;
+      display: none;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-gradient);
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    /* Interactive Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 8px var(--muted);
+    }
+
+    .status-badge.running .status-dot {
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    .status-badge.error .status-dot {
+      background: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+    }
+
+    .status-badge.ok .status-dot {
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.01);
+      text-align: left;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--panel-border);
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 13px;
+      color: #38bdf8;
+    }
+
+    .cell-ok {
+      color: var(--ok);
+      background-color: var(--ok-bg);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .cell-error {
+      color: var(--danger);
+      background-color: var(--danger-bg);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      main {
+        margin: 20px auto;
+      }
+      .summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Kiểm Tra Độ Trễ OpenAI API</h1>
+      <p class="subtitle">Đo lường thời gian phản hồi, TTFT và chất lượng kết nối của các nhà cung cấp OpenAI-compatible API chuyên nghiệp.</p>
+    </header>
+
+    <div class="layout">
+      <!-- Cấu hình kiểm tra -->
+      <section class="panel">
+        <form id="benchmarkForm">
+          <div class="field">
+            <label for="baseUrl">Địa Chỉ Base URL</label>
+            <input id="baseUrl" name="baseUrl" placeholder="https://provider.example.com" value="https://apikey.maivangia.com" required>
+            <label class="checkbox" style="margin: 8px 0 0; font-weight: 500;">
+              <input id="useProxy" name="useProxy" type="checkbox" checked>
+              Sử dụng CORS Proxy (Dành cho API ngoài)
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="apiKey">Khóa API (API Key)</label>
+            <input id="apiKey" name="apiKey" type="password" placeholder="sk-..." value="sk-e2aa144de4457453-cm1awr-75a68ade" autocomplete="off" required>
+          </div>
+
+          <div class="field">
+            <label for="model">Mô Hình (Model)</label>
+            <input id="model" name="model" placeholder="gpt-4o-mini" value="cx/gpt-5.4" required>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="runs">Số Lần Chạy</label>
+              <input id="runs" name="runs" type="number" min="1" max="100" value="5" required>
+            </div>
+
+            <div class="field">
+              <label for="timeout">Giới Hạn Chờ (Giây)</label>
+              <input id="timeout" name="timeout" type="number" min="1" max="300" value="60" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="maxTokens">Số Token Tối Đa</label>
+              <input id="maxTokens" name="maxTokens" type="number" min="1" max="4096" value="32" required>
+            </div>
+
+            <div class="field">
+              <label for="delayMs">Khoảng Trễ Giữa (ms)</label>
+              <input id="delayMs" name="delayMs" type="number" min="0" max="60000" value="0" required>
+            </div>
+          </div>
+
+          <label class="checkbox">
+            <input id="stream" name="stream" type="checkbox">
+            Kiểm tra dạng Luồng (Stream TTFT)
+          </label>
+
+          <div class="field">
+            <label for="prompt">Nội Dung Yêu Cầu (Prompt)</label>
+            <textarea id="prompt" name="prompt">hi</textarea>
+          </div>
+
+          <button id="runButton" type="submit">Bắt Đầu Thử Nghiệm</button>
+          <p class="note">⚠️ <strong>Bảo mật:</strong> API Key được lưu giữ hoàn toàn an toàn ngay trong bộ nhớ trình duyệt của bạn và không bao giờ gửi đi nơi khác.</p>
+        </form>
+      </section>
+
+      <!-- Phân tích và kết quả -->
+      <section class="panel">
+        <!-- Bảng chỉ số tổng hợp -->
+        <div class="summary">
+          <div class="metric">
+            <span>Thành Công</span>
+            <strong id="successMetric">0</strong>
+          </div>
+          <div class="metric">
+            <span>Thất Bại</span>
+            <strong id="failedMetric">0</strong>
+          </div>
+          <div class="metric">
+            <span>T.Bình (Avg)</span>
+            <strong id="avgMetric">-</strong>
+          </div>
+          <div class="metric">
+            <span>Độ trễ P95</span>
+            <strong id="p95Metric">-</strong>
+          </div>
+        </div>
+
+        <!-- Trạng thái -->
+        <div class="status-badge" id="statusBadge">
+          <span class="status-dot"></span>
+          <span id="statusText">Hệ thống sẵn sàng</span>
+        </div>
+
+        <!-- Thanh tiến trình -->
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-text">
+            <span>Tiến trình hoàn thành</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <!-- Bảng chi tiết kết quả -->
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Lượt</th>
+                <th>Trạng Thái</th>
+                <th>Mã HTTP</th>
+                <th>Tổng Độ Trễ</th>
+                <th>TTFT (Đầu)</th>
+                <th>Lỗi Chi Tiết</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">Chưa có dữ liệu thử nghiệm nào được thực hiện.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const form = document.querySelector("#benchmarkForm");
+    const runButton = document.querySelector("#runButton");
+    
+    // Status Badge Elements
+    const statusBadge = document.querySelector("#statusBadge");
+    const statusText = document.querySelector("#statusText");
+    
+    // Progress Bar Elements
+    const progressContainer = document.querySelector("#progressContainer");
+    const progressFill = document.querySelector("#progressFill");
+    const progressPercent = document.querySelector("#progressPercent");
+    
+    const resultsBody = document.querySelector("#resultsBody");
+    const successMetric = document.querySelector("#successMetric");
+    const failedMetric = document.querySelector("#failedMetric");
+    const avgMetric = document.querySelector("#avgMetric");
+    const p95Metric = document.querySelector("#p95Metric");
+
+    function normalizeBaseUrl(baseUrl) {
+      return baseUrl.trim().replace(/\/+$/, "");
+    }
+
+    function chatCompletionsUrl(baseUrl, useProxy) {
+      let normalized = normalizeBaseUrl(baseUrl);
+      
+      if (normalized.startsWith("https://corsproxy.io/?")) {
+        normalized = normalized.replace("https://corsproxy.io/?", "");
+      }
+      
+      let targetUrl = normalized;
+      if (!normalized.endsWith("/chat/completions")) {
+        targetUrl = normalized.endsWith("/v1")
+          ? `${normalized}/chat/completions`
+          : `${normalized}/v1/chat/completions`;
+      }
+        
+      if (useProxy && !targetUrl.includes("localhost") && !targetUrl.includes("127.0.0.1")) {
+        return `https://corsproxy.io/?${targetUrl}`;
+      }
+      return targetUrl;
+    }
+
+    function elapsedMs(started) {
+      return performance.now() - started;
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function formatMs(value) {
+      return Number.isFinite(value) ? `${value.toFixed(0)} ms` : "-";
+    }
+
+    function shortError(error) {
+      const message = String(error && error.message ? error.message : error || "");
+      if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+        return "Lỗi kết nối mạng (CORS bị chặn hoặc Server ngắt kết nối)";
+      }
+      if (message.includes("aborted")) {
+        return "Yêu cầu bị quá giờ (Timeout)";
+      }
+      return message.replace(/\s+/g, " ").slice(0, 200);
+    }
+
+    function percentile(values, percent) {
+      if (!values.length) return 0;
+      const sorted = [...values].sort((a, b) => a - b);
+      const rank = (sorted.length - 1) * percent;
+      const lower = Math.floor(rank);
+      const upper = Math.min(lower + 1, sorted.length - 1);
+      const weight = rank - lower;
+      return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+    }
+
+    function updateSummary(results) {
+      const success = results.filter(item => item.ok);
+      const failed = results.length - success.length;
+      const totals = success.map(item => item.totalMs);
+
+      successMetric.textContent = String(success.length);
+      failedMetric.textContent = String(failed);
+      avgMetric.textContent = totals.length
+        ? `${formatMs(totals.reduce((sum, value) => sum + value, 0) / totals.length)}`
+        : "-";
+      p95Metric.textContent = totals.length ? `${formatMs(percentile(totals, 0.95))}` : "-";
+    }
+
+    function renderResults(results) {
+      if (!results.length) {
+        resultsBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">Chưa có dữ liệu thử nghiệm.</td></tr>`;
+        return;
+      }
+
+      resultsBody.innerHTML = results.map(item => `
+        <tr>
+          <td><strong style="color: #fff;">#${item.index}</strong></td>
+          <td>
+            <span class="${item.ok ? "cell-ok" : "cell-error"}">
+              ${item.ok ? "Thành công" : "Lỗi"}
+            </span>
+          </td>
+          <td><span class="mono">${item.status || "-"}</span></td>
+          <td><span class="mono" style="color: #f43f5e; font-weight: 600;">${formatMs(item.totalMs)}</span></td>
+          <td><span class="mono" style="color: #10b981;">${formatMs(item.firstTokenMs)}</span></td>
+          <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted);" title="${escapeHtml(item.error || "")}">
+            ${escapeHtml(item.error || "-")}
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    async function runSingleTest(config, index) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), config.timeout * 1000);
+      const started = performance.now();
+      let firstTokenMs = null;
+      let status = null;
+
+      try {
+        const response = await fetch(chatCompletionsUrl(config.baseUrl, config.useProxy), {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${config.apiKey}`,
+            "Content-Type": "application/json",
+            "Accept": config.stream ? "text/event-stream" : "application/json"
+          },
+          body: JSON.stringify({
+            model: config.model,
+            messages: [{ role: "user", content: config.prompt }],
+            temperature: 0,
+            max_tokens: config.maxTokens,
+            stream: config.stream
+          }),
+          signal: controller.signal
+        });
+
+        status = response.status;
+
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(body || `Lỗi HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        if (config.stream && response.body) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const chunk = await reader.read();
+            if (chunk.done) break;
+
+            const text = decoder.decode(chunk.value, { stream: true });
+            if (firstTokenMs === null && text.trim()) {
+              firstTokenMs = elapsedMs(started);
+            }
+          }
+        } else {
+          await response.text();
+        }
+
+        return {
+          index,
+          ok: true,
+          status,
+          totalMs: elapsedMs(started),
+          firstTokenMs,
+          error: ""
+        };
+      } catch (error) {
+        return {
+          index,
+          ok: false,
+          status,
+          totalMs: elapsedMs(started),
+          firstTokenMs,
+          error: shortError(error)
+        };
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const config = {
+        baseUrl: formData.get("baseUrl"),
+        apiKey: formData.get("apiKey"),
+        model: formData.get("model"),
+        runs: Number(formData.get("runs")),
+        timeout: Number(formData.get("timeout")),
+        maxTokens: Number(formData.get("maxTokens")),
+        delayMs: Number(formData.get("delayMs")),
+        prompt: formData.get("prompt"),
+        stream: formData.get("stream") === "on",
+        useProxy: formData.get("useProxy") === "on"
+      };
+
+      const results = [];
+      runButton.disabled = true;
+      
+      // Update Status Badge to Running
+      statusBadge.className = "status-badge running";
+      statusText.textContent = "Đang thực hiện thử nghiệm...";
+      
+      // Reset & Show Progress Bar
+      progressContainer.style.display = "block";
+      progressFill.style.width = "0%";
+      progressPercent.textContent = "0%";
+      
+      renderResults(results);
+      updateSummary(results);
+
+      for (let index = 1; index <= config.runs; index += 1) {
+        statusText.textContent = `Đang chạy yêu cầu #${index}/${config.runs}...`;
+        const result = await runSingleTest(config, index);
+        results.push(result);
+        
+        // Update Progress Bar
+        const percentage = Math.round((index / config.runs) * 100);
+        progressFill.style.width = `${percentage}%`;
+        progressPercent.textContent = `${percentage}%`;
+        
+        renderResults(results);
+        updateSummary(results);
+
+        if (index < config.runs && config.delayMs > 0) {
+          await sleep(config.delayMs);
+        }
+      }
+
+      const failed = results.filter(item => !item.ok).length;
+      if (failed) {
+        statusBadge.className = "status-badge error";
+        statusText.textContent = `Thử nghiệm hoàn tất. Có ${failed} yêu cầu thất bại.`;
+      } else {
+        statusBadge.className = "status-badge ok";
+        statusText.textContent = "Thử nghiệm hoàn thành xuất sắc! 100% kết nối ổn định.";
+      }
+      
+      runButton.disabled = false;
+    });
+  </script>
+</body>
+</html>
